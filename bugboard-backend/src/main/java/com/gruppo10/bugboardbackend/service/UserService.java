@@ -34,7 +34,7 @@ public class UserService {
     @Transactional
     public User createUser(String email, String rawPassword, Role role, User currentUser) {
 
-        // Verifica di sicurezza: solo gli ADMIN possono creare utenti
+        // Solo gli ADMIN possono creare utenti
         if (currentUser.getRole() != Role.ADMIN) {
             throw new SecurityException("Operazione negata: solo gli amministratori possono creare nuove utenze.");
         }
