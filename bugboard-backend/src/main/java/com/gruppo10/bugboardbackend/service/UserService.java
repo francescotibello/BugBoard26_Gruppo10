@@ -22,6 +22,7 @@ public class UserService {
         // Controlla se l'admin esiste già per evitare duplicati ai successivi riavvii
         if (userRepository.findByEmail("admin@bugboard.com").isEmpty()) {
             User defaultAdmin = User.builder()
+                    .name("Amministratore di Sistema")
                     .email("admin@bugboard.com")
                     .password(passwordEncoder.encode("admin123")) // La password deve essere salvata criptata
                     .role(Role.ADMIN)
@@ -32,7 +33,7 @@ public class UserService {
 
     // Requisito 1: Un amministratore può creare ulteriori utenze
     @Transactional
-    public User createUser(String email, String rawPassword, Role role, User currentUser) {
+    public User createUser(String name, String email, String rawPassword, Role role, User currentUser) {
 
         // Solo gli ADMIN possono creare utenti
         if (currentUser.getRole() != Role.ADMIN) {
@@ -45,6 +46,7 @@ public class UserService {
         }
 
         User newUser = User.builder()
+                .name(name)
                 .email(email)
                 .password(passwordEncoder.encode(rawPassword))
                 .role(role)
