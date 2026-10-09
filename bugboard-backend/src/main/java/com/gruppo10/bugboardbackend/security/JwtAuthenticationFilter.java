@@ -1,5 +1,6 @@
 package com.gruppo10.bugboardbackend.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,42 +33,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
-
-        // 1. Se non c'è il token o non inizia per "Bearer ", passa oltre (la richiesta verrà poi bloccata da Spring Security)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 2. Estrai il token (tagliando i primi 7 caratteri: "Bearer ")
-        jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwt);
-
-        // 3. Se il token contiene un'email e l'utente non è ancora autenticato nel contesto attuale
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-            // Carica l'utente dal database
-            UserDetails userDetails = this.userRepository.findByEmail(userEmail)
-                    .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato"));
-
-            // 4. Se il token è valido, diciamo a Spring Security di autenticare la richiesta
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
-                // Salviamo l'utente autenticato nel contesto di sicurezza
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+        final String jwt = authHeader.substring(7);
+        try {
+            final String userEmail = jwtService.extractUsername(jwt);
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userRepository.findByEmail(userEmail)
+                        .orElseThrow(() -> new UsernameNotFoundException("Utente non trovato"));
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (JwtException | UsernameNotFoundException e) {
+            // Token scaduto/manomesso o utente non più esistente: si prosegue come non autenticato
         }
 
-        // Vai al prossimo filtro
         filterChain.doFilter(request, response);
     }
 }

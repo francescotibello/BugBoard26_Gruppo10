@@ -28,6 +28,7 @@ public class Issue {
     private IssueType type;
 
     // Il Requisito 2 chiede che le issue siano inizialmente nello stato "todo"
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private IssueStatus status = IssueStatus.TODO;
@@ -50,6 +51,12 @@ public class Issue {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
     private User assignee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "duplicate_of_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Issue duplicateOf;
 
     // GESTIONE DELLE DATE (Utile per la cronologia - Requisito 12)
     @Column(updatable = false)
