@@ -16,7 +16,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Requisito 1: Account da amministratore già attivo
+    // Requisito 1: Account da amministratore già attivo all'avvio del sistema
     @PostConstruct
     public void initDefaultAdmin() {
         // Controlla se l'admin esiste già per evitare duplicati ai successivi riavvii
@@ -31,23 +31,37 @@ public class UserService {
         }
     }
 
-    // Requisito 1: Un amministratore può creare ulteriori utenze
+    // Requisito 1: Un amministratore può creare ulteriori utenze (normali o di amministrazione)
     @Transactional
     public User createUser(String name, String email, String rawPassword, Role role, User currentUser) {
-
-        // Solo gli ADMIN possono creare utenti
-        if (currentUser.getRole() != Role.ADMIN) {
+        // Solo gli ADMIN possono creare nuovi utenti
+        if (currentUser == null || currentUser.getRole() != Role.ADMIN) {
             throw new SecurityException("Operazione negata: solo gli amministratori possono creare nuove utenze.");
         }
 
-        // Verifica che l'email non sia già registrata
-        if (userRepository.findByEmail(email).isPresent()) {
+        // Controllo validità dei campi obbligatori
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Il nome è obbligatorio.");
+        }
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("L'email è obbligatoria.");
+        }
+        if (rawPassword == null || rawPassword.isBlank()) {
+            throw new IllegalArgumentException("La password è obbligatoria.");
+        }
+        if (role == null) {
+            throw new IllegalArgumentException("Il ruolo è obbligatorio (USER o ADMIN).");
+        }
+
+        // Verifica che l'email non sia già registrata nel database
+        if (userRepository.findByEmail(email.trim()).isPresent()) {
             throw new IllegalArgumentException("Errore: Email già in uso.");
         }
 
+        // Creazione dell'utente con password cifrata tramite BCrypt
         User newUser = User.builder()
-                .name(name)
-                .email(email)
+                .name(name.trim())
+                .email(email.trim())
                 .password(passwordEncoder.encode(rawPassword))
                 .role(role)
                 .build();

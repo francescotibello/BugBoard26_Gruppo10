@@ -36,20 +36,24 @@ public class Issue {
     @Enumerated(EnumType.STRING)
     private IssuePriority priority; // Opzionale
 
+    @Column(columnDefinition = "TEXT")
     private String imageUrl; // Opzionale per l'allegato
 
     private LocalDate deadline; // Opzionale (Requisito 18)
 
     // RELAZIONI CON L'UTENTE
-
     // Chi ha segnalato il bug
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reporter_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User reporter;
 
     // A chi è stato assegnato (opzionale alla creazione)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User assignee;
 
     @ManyToOne(fetch = FetchType.LAZY)
