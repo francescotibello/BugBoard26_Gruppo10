@@ -77,6 +77,22 @@ class UserServiceTest {
         assertEquals(requestedRole, created.getRole());
     }
 
+    @Test
+    void createUser_whenRequiredFieldsAreBlankOrNull_throwsIllegalArgumentException() {
+        User admin = user(Role.ADMIN, "admin@test.com");
+
+        assertThrows(IllegalArgumentException.class, () ->
+                userService.createUser("", "mario@test.com", "password123", Role.USER, admin));
+        assertThrows(IllegalArgumentException.class, () ->
+                userService.createUser("Mario", "   ", "password123", Role.USER, admin));
+        assertThrows(IllegalArgumentException.class, () ->
+                userService.createUser("Mario", "mario@test.com", "", Role.USER, admin));
+        assertThrows(IllegalArgumentException.class, () ->
+                userService.createUser("Mario", "mario@test.com", "password123", null, admin));
+
+        verifyNoInteractions(userRepository, passwordEncoder);
+    }
+
     private User user(Role role, String email) {
         return User.builder()
                 .id(1L)

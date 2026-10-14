@@ -113,6 +113,15 @@ class IssueServiceTest {
     // ---------- setDeadline ----------
 
     @Test
+    void setDeadline_whenDeadlineIsNull_throwsIllegalArgumentException() {
+        User admin = user(1L, Role.ADMIN);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                issueService.setDeadline(1L, null, admin));
+        verifyNoInteractions(issueRepository, historyRepository);
+    }
+
+    @Test
     void setDeadline_whenActorIsNotAdmin_throwsSecurityException() {
         User normalUser = user(2L, Role.USER);
 
