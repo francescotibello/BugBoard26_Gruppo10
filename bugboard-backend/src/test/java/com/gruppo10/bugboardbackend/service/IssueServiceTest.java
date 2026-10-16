@@ -111,7 +111,6 @@ class IssueServiceTest {
     }
 
     // ---------- setDeadline ----------
-
     @Test
     void setDeadline_whenDeadlineIsNull_throwsIllegalArgumentException() {
         User admin = user(1L, Role.ADMIN);

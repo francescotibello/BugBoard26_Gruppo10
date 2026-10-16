@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Next.js / Frontend ###
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+.env
+.env*.local
+npm-debug.log*
